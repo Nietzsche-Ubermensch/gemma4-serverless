@@ -311,8 +311,9 @@
         T = false;
       const $ = (id) => document.getElementById(id);
 
-      $("ep").value = localStorage.ep || "";
+      $("ep").value = localStorage.ep || "https://eax8vtsmsv57837j.us-east-1.aws.endpoints.huggingface.cloud";
       $("tk").value = localStorage.tk || "";
+      localStorage.ep = $("ep").value;
       T = localStorage.think === "true";
       $("thinkpill").className = T ? "pill on" : "pill";
       $("thinkpill").textContent = T ? "Think" : "Fast";
