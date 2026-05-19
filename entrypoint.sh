@@ -18,7 +18,7 @@ else
 fi
 
 echo "Starting llama-server..."
-exec /app/llama-server \
+exec llama-server \
 	-m "$MODEL_FILE" \
 	--host 0.0.0.0 \
 	--port 11434 \
