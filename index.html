@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gemma4 Chat</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -12,108 +14,125 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #setup input,#setup button{padding:12px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#c9d1d9;font-size:16px}
 #setup button{background:#238636;border:none;color:#fff;font-weight:600;cursor:pointer}
 #setup button:hover{background:#2ea043}
-#setup .hint{font-size:12px;color:#8b949e;text-align:center}
+.hint{font-size:12px;color:#8b949e;text-align:center}
 #chat{display:none;flex-direction:column;height:100dvh}
-#header{background:#161b22;padding:12px 16px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
-#header h2{font-size:16px;color:#f0f6fc}
-#header button{background:none;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:6px;font-size:14px;cursor:pointer}
-#messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:85%;padding:10px 14px;border-radius:12px;font-size:15px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+#header{background:#161b22;padding:8px 12px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+#header h2{font-size:15px;color:#f0f6fc}
+#header .btns{display:flex;gap:6px}
+#header .btns button{background:none;border:1px solid #30363d;color:#8b949e;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap}
+#header .btns button.on{background:#1f6feb;color:#fff;border-color:#1f6feb}
+#messages{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.msg{max-width:88%;padding:8px 12px;border-radius:12px;font-size:15px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
 .msg.user{align-self:flex-end;background:#238636;color:#fff}
 .msg.assistant{align-self:flex-start;background:#161b22;border:1px solid #30363d}
-.msg .thinking{font-size:12px;color:#8b949e;font-style:italic;margin-bottom:6px;border-left:2px solid #30363d;padding-left:8px}
-#input-area{display:flex;gap:8px;padding:12px;border-top:1px solid #30363d;background:#161b22}
-#input-area input{flex:1;padding:10px 14px;border-radius:20px;border:1px solid #30363d;background:#0d1117;color:#c9d1d9;font-size:16px;outline:none}
-#input-area button{padding:10px 16px;border-radius:20px;background:#238636;border:none;color:#fff;font-weight:600;cursor:pointer;font-size:15px}
-.loading{color:#8b949e;font-size:14px;padding:8px}
-#error{color:#f85149;text-align:center;font-size:13px;padding:8px}
+.msg .think{font-size:12px;color:#8b949e;font-style:italic;margin-bottom:6px;border-left:2px solid #30363d;padding-left:8px;max-height:200px;overflow-y:auto}
+.msg .think summary{cursor:pointer;color:#58a6ff}
+#input-area{display:flex;gap:6px;padding:8px 12px;padding-bottom:max(8px,env(safe-area-inset-bottom));border-top:1px solid #30363d;background:#161b22}
+#input-area input{flex:1;padding:8px 14px;border-radius:20px;border:1px solid #30363d;background:#0d1117;color:#c9d1d9;font-size:16px;outline:none}
+#input-area button{padding:8px 16px;border-radius:20px;background:#238636;border:none;color:#fff;font-weight:600;cursor:pointer;font-size:15px}
+.loading{color:#8b949e;font-size:14px;padding:8px;display:flex;align-items:center;gap:6px}
+.spinner{width:14px;height:14px;border:2px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#error{color:#f85149;text-align:center;font-size:13px;padding:4px 12px}
 </style>
 </head>
 <body>
 
 <div id="setup">
   <h1>Gemma4 Uncensored</h1>
-  <input id="ep" type="text" placeholder="Endpoint URL (from HF console)">
+  <input id="ep" type="text" placeholder="Endpoint URL">
   <input id="tk" type="password" placeholder="HF Token">
   <button onclick="connect()">Connect</button>
-  <div class="hint">Token stays on your device only</div>
+  <div class="hint">Stays on your device only</div>
 </div>
 
 <div id="chat">
   <div id="header">
     <h2>Gemma4 26B</h2>
-    <button onclick="disconnect()">Disconnect</button>
+    <div class="btns">
+      <button id="thinktoggle" class="on" onclick="toggleThink()">Think</button>
+      <button id="clearbtn" onclick="clearChat()">Clear</button>
+      <button id="disconnectbtn" onclick="disconnect()">✕</button>
+    </div>
   </div>
   <div id="messages"></div>
   <div id="error"></div>
   <div id="input-area">
-    <input id="prompt" type="text" placeholder="Message..." onkeydown="if(event.key==='Enter')send()">
+    <input id="prompt" type="text" placeholder="Message..." onkeydown="if(event.key==='Enter')send()" autofocus>
     <button onclick="send()">Send</button>
   </div>
 </div>
 
 <script>
-const setup = document.getElementById('setup');
-const chat = document.getElementById('chat');
-const messages = document.getElementById('messages');
-const error = document.getElementById('error');
-const prompt = document.getElementById('prompt');
+let history = [];
+let thinking = true;
 
-document.getElementById('ep').value = localStorage.getItem('ep') || '';
-document.getElementById('tk').value = localStorage.getItem('tk') || '';
+const $m = id => document.getElementById(id);
+
+$m('ep').value = localStorage.getItem('ep') || '';
+$m('tk').value = localStorage.getItem('tk') || '';
+thinking = localStorage.getItem('think') !== 'false';
+updateThinkBtn();
 if (localStorage.getItem('ep') && localStorage.getItem('tk')) showChat();
 
 function connect() {
-  const ep = document.getElementById('ep').value.trim();
-  const tk = document.getElementById('tk').value.trim();
+  const ep = $m('ep').value.trim(), tk = $m('tk').value.trim();
   if (!ep || !tk) return;
-  localStorage.setItem('ep', ep);
-  localStorage.setItem('tk', tk);
+  localStorage.setItem('ep', ep); localStorage.setItem('tk', tk);
   showChat();
 }
-
-function showChat() { setup.style.display='none'; chat.style.display='flex'; }
-function disconnect() { localStorage.clear(); setup.style.display='flex'; chat.style.display='none'; messages.innerHTML=''; }
+function showChat() { $m('setup').style.display = 'none'; $m('chat').style.display = 'flex'; $m('prompt').focus(); }
+function disconnect() { localStorage.clear(); $m('setup').style.display = 'flex'; $m('chat').style.display = 'none'; $m('messages').innerHTML = ''; history = []; }
+function toggleThink() { thinking = !thinking; localStorage.setItem('think', thinking); updateThinkBtn(); }
+function updateThinkBtn() { $m('thinktoggle').className = thinking ? 'on' : ''; $m('thinktoggle').textContent = thinking ? 'Think: ON' : 'Think: OFF'; }
+function clearChat() { $m('messages').innerHTML = ''; history = []; $m('error').textContent = ''; }
 
 async function send() {
-  const text = prompt.value.trim();
+  const text = $m('prompt').value.trim();
   if (!text) return;
-  prompt.value = '';
-  error.textContent = '';
+  $m('prompt').value = '';
+  $m('error').textContent = '';
   addMessage(text, 'user');
-  
-  const loading = document.createElement('div');
-  loading.className = 'msg assistant loading';
-  loading.textContent = 'Thinking...';
-  messages.appendChild(loading);
-  messages.scrollTop = messages.scrollHeight;
+  history.push({ role: 'user', content: text });
+
+  const load = document.createElement('div');
+  load.className = 'msg assistant loading';
+  load.innerHTML = '<div class="spinner"></div> Thinking...';
+  $m('messages').appendChild(load);
+  $m('messages').scrollTop = $m('messages').scrollHeight;
 
   try {
+    const body = { model: 'tgi', messages: history, max_tokens: 8192, temperature: 1.0, top_p: 0.95, top_k: 64, stream: false };
+    if (!thinking) body.chat_template_kwargs = { enable_thinking: false };
+    
     const res = await fetch(localStorage.getItem('ep') + '/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+localStorage.getItem('tk') },
-      body: JSON.stringify({ model:'tgi', messages:[{role:'user',content:text}], max_tokens:4096, stream:false })
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('tk') },
+      body: JSON.stringify(body),
     });
     const data = await res.json();
-    loading.remove();
-    
-    if (data.error) { error.textContent = data.error.message || data.error; return; }
-    
+    load.remove();
+
+    if (data.error) { $m('error').textContent = data.error.message || JSON.stringify(data.error); return; }
+
     const msg = data.choices?.[0]?.message;
-    const thinking = msg?.reasoning_content;
+    const think = msg?.reasoning_content;
     const content = msg?.content || '(empty)';
-    
+    history.push({ role: 'assistant', content: content });
+
     const div = document.createElement('div');
     div.className = 'msg assistant';
-    if (thinking) { 
-      const t = document.createElement('div'); t.className='thinking'; t.textContent=thinking; div.appendChild(t); 
+    if (think) {
+      const d = document.createElement('details'); d.className = 'think';
+      d.innerHTML = '<summary>Thought process</summary>' + think.replace(/\n/g, '<br>');
+      div.appendChild(d);
     }
     div.appendChild(document.createTextNode(content));
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-  } catch(e) {
-    loading.remove();
-    error.textContent = 'Connection failed: ' + e.message;
+    $m('messages').appendChild(div);
+    $m('messages').scrollTop = $m('messages').scrollHeight;
+  } catch (e) {
+    load.remove();
+    $m('error').textContent = 'Failed: ' + e.message;
   }
 }
 
@@ -121,8 +140,8 @@ function addMessage(text, role) {
   const div = document.createElement('div');
   div.className = 'msg ' + role;
   div.textContent = text;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+  $m('messages').appendChild(div);
+  $m('messages').scrollTop = $m('messages').scrollHeight;
 }
 </script>
 </body>
