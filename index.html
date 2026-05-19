@@ -5,143 +5,153 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Gemma4 Chat</title>
+<meta name="theme-color" content="#0d1117">
+<title>Gemma4</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;height:100dvh;display:flex;flex-direction:column}
-#setup{display:flex;flex-direction:column;gap:12px;padding:20px;max-width:400px;margin:auto;width:100%}
-#setup h1{font-size:20px;text-align:center;color:#f0f6fc}
-#setup input,#setup button{padding:12px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#c9d1d9;font-size:16px}
-#setup button{background:#238636;border:none;color:#fff;font-weight:600;cursor:pointer}
-#setup button:hover{background:#2ea043}
-.hint{font-size:12px;color:#8b949e;text-align:center}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#setup{display:flex;flex-direction:column;gap:16px;padding:32px 24px;max-width:360px;margin:auto;width:100%}
+#setup h1{font-size:22px;font-weight:600;text-align:center;color:#f0f6fc;letter-spacing:-0.3px}
+#setup input{width:100%;padding:14px 16px;border-radius:10px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:15px;transition:border-color .2s}
+#setup input:focus{outline:none;border-color:#1f6feb}
+#setup input::placeholder{color:#484f58}
+#setup button{width:100%;padding:14px;border-radius:10px;background:#238636;border:none;color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s}
+#setup button:active{background:#196c2a}
+.label{font-size:12px;color:#8b949e;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
 #chat{display:none;flex-direction:column;height:100dvh}
-#header{background:#161b22;padding:8px 12px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
-#header h2{font-size:15px;color:#f0f6fc}
-#header .btns{display:flex;gap:6px}
-#header .btns button{background:none;border:1px solid #30363d;color:#8b949e;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap}
-#header .btns button.on{background:#1f6feb;color:#fff;border-color:#1f6feb}
-#messages{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
-.msg{max-width:88%;padding:8px 12px;border-radius:12px;font-size:15px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
-.msg.user{align-self:flex-end;background:#238636;color:#fff}
-.msg.assistant{align-self:flex-start;background:#161b22;border:1px solid #30363d}
-.msg .think{font-size:12px;color:#8b949e;font-style:italic;margin-bottom:6px;border-left:2px solid #30363d;padding-left:8px;max-height:200px;overflow-y:auto}
-.msg .think summary{cursor:pointer;color:#58a6ff}
-#input-area{display:flex;gap:6px;padding:8px 12px;padding-bottom:max(8px,env(safe-area-inset-bottom));border-top:1px solid #30363d;background:#161b22}
-#input-area input{flex:1;padding:8px 14px;border-radius:20px;border:1px solid #30363d;background:#0d1117;color:#c9d1d9;font-size:16px;outline:none}
-#input-area button{padding:8px 16px;border-radius:20px;background:#238636;border:none;color:#fff;font-weight:600;cursor:pointer;font-size:15px}
-.loading{color:#8b949e;font-size:14px;padding:8px;display:flex;align-items:center;gap:6px}
-.spinner{width:14px;height:14px;border:2px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#error{color:#f85149;text-align:center;font-size:13px;padding:4px 12px}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0d1117cc;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #21262d;position:sticky;top:0;z-index:10}
+#topbar h2{font-size:16px;font-weight:600;color:#f0f6fc}
+#topbar .right{display:flex;gap:8px;align-items:center}
+.pill{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid #30363d;background:transparent;color:#8b949e;cursor:pointer;transition:all .2s;white-space:nowrap}
+.pill.on{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.pill:active{opacity:.7}
+#msglist{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+.bubble{max-width:90%;animation:fadein .3s ease}
+.bubble.you{align-self:flex-end}
+.bubble.they{align-self:flex-start}
+.bubble .txt{padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.bubble.you .txt{background:#1f6feb;color:#fff;border-bottom-right-radius:6px}
+.bubble.they .txt{background:#161b22;border:1px solid #30363d;border-bottom-left-radius:6px}
+.thinkbox{margin-bottom:8px;padding:8px 12px;background:#0d1117;border-radius:10px;border:1px solid #21262d;font-size:12px;color:#8b949e;line-height:1.5;max-height:180px;overflow-y:auto}
+.thinkbox summary{color:#58a6ff;font-size:11px;font-weight:500;cursor:pointer;margin-bottom:4px}
+#bottombar{display:flex;gap:8px;padding:10px 16px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:#0d1117;border-top:1px solid #21262d}
+#bottombar input{flex:1;padding:10px 16px;border-radius:22px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:16px;outline:none;transition:border-color .2s}
+#bottombar input:focus{border-color:#1f6feb}
+#bottombar button{width:44px;height:44px;border-radius:50%;background:#1f6feb;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;flex-shrink:0}
+#bottombar button svg{width:20px;height:20px;fill:#fff}
+#bottombar button:active{background:#1158c7}
+#status{text-align:center;font-size:12px;color:#484f58;padding:6px}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid #30363d;border-top-color:#8b949e;border-radius:50%;animation:s .6s linear infinite;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
 <div id="setup">
-  <h1>Gemma4 Uncensored</h1>
-  <input id="ep" type="text" placeholder="Endpoint URL">
-  <input id="tk" type="password" placeholder="HF Token">
+  <h1>Gemma4</h1>
+  <div>
+    <div class="label">Endpoint</div>
+    <input id="ep" type="text" placeholder="https://...">
+  </div>
+  <div>
+    <div class="label">Token</div>
+    <input id="tk" type="password" placeholder="hf_...">
+  </div>
   <button onclick="connect()">Connect</button>
-  <div class="hint">Stays on your device only</div>
 </div>
 
 <div id="chat">
-  <div id="header">
-    <h2>Gemma4 26B</h2>
-    <div class="btns">
-      <button id="thinktoggle" class="on" onclick="toggleThink()">Think</button>
-      <button id="clearbtn" onclick="clearChat()">Clear</button>
-      <button id="disconnectbtn" onclick="disconnect()">✕</button>
+  <div id="topbar">
+    <h2>Gemma4</h2>
+    <div class="right">
+      <button class="pill on" id="thinkpill" onclick="toggleThink()">Think</button>
+      <button class="pill" onclick="clearChat()">Clear</button>
     </div>
   </div>
-  <div id="messages"></div>
-  <div id="error"></div>
-  <div id="input-area">
-    <input id="prompt" type="text" placeholder="Message..." onkeydown="if(event.key==='Enter')send()" autofocus>
-    <button onclick="send()">Send</button>
+  <div id="msglist"></div>
+  <div id="status"></div>
+  <div id="bottombar">
+    <input id="prompt" type="text" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')send()" autofocus>
+    <button onclick="send()" id="sendbtn" aria-label="Send">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
   </div>
 </div>
 
 <script>
-let history = [];
-let thinking = true;
+let H=[],T=true;
+const $=id=>document.getElementById(id);
 
-const $m = id => document.getElementById(id);
+$('ep').value=localStorage.ep||'';
+$('tk').value=localStorage.tk||'';
+T=localStorage.think!=='false';
+$('thinkpill').className=T?'pill on':'pill';
+$('thinkpill').textContent=T?'Think':'Fast';
+if(localStorage.ep&&localStorage.tk)showChat();
 
-$m('ep').value = localStorage.getItem('ep') || '';
-$m('tk').value = localStorage.getItem('tk') || '';
-thinking = localStorage.getItem('think') !== 'false';
-updateThinkBtn();
-if (localStorage.getItem('ep') && localStorage.getItem('tk')) showChat();
-
-function connect() {
-  const ep = $m('ep').value.trim(), tk = $m('tk').value.trim();
-  if (!ep || !tk) return;
-  localStorage.setItem('ep', ep); localStorage.setItem('tk', tk);
-  showChat();
+function connect(){
+  const e=$('ep').value.trim(),t=$('tk').value.trim();
+  if(!e||!t)return;
+  localStorage.ep=e;localStorage.tk=t;showChat();
 }
-function showChat() { $m('setup').style.display = 'none'; $m('chat').style.display = 'flex'; $m('prompt').focus(); }
-function disconnect() { localStorage.clear(); $m('setup').style.display = 'flex'; $m('chat').style.display = 'none'; $m('messages').innerHTML = ''; history = []; }
-function toggleThink() { thinking = !thinking; localStorage.setItem('think', thinking); updateThinkBtn(); }
-function updateThinkBtn() { $m('thinktoggle').className = thinking ? 'on' : ''; $m('thinktoggle').textContent = thinking ? 'Think: ON' : 'Think: OFF'; }
-function clearChat() { $m('messages').innerHTML = ''; history = []; $m('error').textContent = ''; }
+function showChat(){$('setup').style.display='none';$('chat').style.display='flex';$('prompt').focus()}
+function toggleThink(){T=!T;localStorage.think=T;$('thinkpill').className=T?'pill on':'pill';$('thinkpill').textContent=T?'Think':'Fast'}
+function clearChat(){$('msglist').innerHTML='';H=[]}
 
-async function send() {
-  const text = $m('prompt').value.trim();
-  if (!text) return;
-  $m('prompt').value = '';
-  $m('error').textContent = '';
-  addMessage(text, 'user');
-  history.push({ role: 'user', content: text });
+async function send(){
+  const t=$('prompt').value.trim();
+  if(!t)return;
+  $('prompt').value='';
+  H.push({role:'user',content:t});
+  addBubble(t,'you');
 
-  const load = document.createElement('div');
-  load.className = 'msg assistant loading';
-  load.innerHTML = '<div class="spinner"></div> Thinking...';
-  $m('messages').appendChild(load);
-  $m('messages').scrollTop = $m('messages').scrollHeight;
+  const load=addBubble('<span class="spin"></span>','they');
 
-  try {
-    const body = { model: 'tgi', messages: history, max_tokens: 8192, temperature: 1.0, top_p: 0.95, top_k: 64, stream: false };
-    if (!thinking) body.chat_template_kwargs = { enable_thinking: false };
-    
-    const res = await fetch(localStorage.getItem('ep') + '/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('tk') },
-      body: JSON.stringify(body),
+  try{
+    const b={model:'tgi',messages:H,max_tokens:8192,temperature:1,top_p:.95,top_k:64,stream:false};
+    if(!T)b.chat_template_kwargs={enable_thinking:false};
+
+    const r=await fetch(localStorage.ep+'/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+localStorage.tk},
+      body:JSON.stringify(b)
     });
-    const data = await res.json();
+    const d=await r.json();
     load.remove();
 
-    if (data.error) { $m('error').textContent = data.error.message || JSON.stringify(data.error); return; }
+    if(d.error){addBubble('Error: '+(d.error.message||JSON.stringify(d.error)),'they');return}
 
-    const msg = data.choices?.[0]?.message;
-    const think = msg?.reasoning_content;
-    const content = msg?.content || '(empty)';
-    history.push({ role: 'assistant', content: content });
+    const m=d.choices?.[0]?.message;
+    const th=m?.reasoning_content;
+    const c=m?.content||'';
+    H.push({role:'assistant',content:c});
 
-    const div = document.createElement('div');
-    div.className = 'msg assistant';
-    if (think) {
-      const d = document.createElement('details'); d.className = 'think';
-      d.innerHTML = '<summary>Thought process</summary>' + think.replace(/\n/g, '<br>');
-      div.appendChild(d);
+    const div=document.createElement('div');
+    div.className='bubble they';
+    if(th){
+      const box=document.createElement('details');box.className='thinkbox';
+      box.innerHTML='<summary>Thought process</summary>'+th;
+      div.appendChild(box);
     }
-    div.appendChild(document.createTextNode(content));
-    $m('messages').appendChild(div);
-    $m('messages').scrollTop = $m('messages').scrollHeight;
-  } catch (e) {
+    const txt=document.createElement('div');txt.className='txt';txt.textContent=c;
+    div.appendChild(txt);
+    $('msglist').appendChild(div);
+    div.scrollIntoView({behavior:'smooth'});
+  }catch(e){
     load.remove();
-    $m('error').textContent = 'Failed: ' + e.message;
+    addBubble('Connection failed','they');
   }
 }
 
-function addMessage(text, role) {
-  const div = document.createElement('div');
-  div.className = 'msg ' + role;
-  div.textContent = text;
-  $m('messages').appendChild(div);
-  $m('messages').scrollTop = $m('messages').scrollHeight;
+function addBubble(text,role){
+  const div=document.createElement('div');
+  div.className='bubble '+role;
+  const txt=document.createElement('div');txt.className='txt';txt.innerHTML=text;
+  div.appendChild(txt);
+  $('msglist').appendChild(div);
+  div.scrollIntoView({behavior:'smooth'});
+  return div;
 }
 </script>
 </body>
